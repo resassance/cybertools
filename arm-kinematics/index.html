@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyberarm // Kinematics — Симулятор робо-манипулятора</title>
+    <meta name="description" content="Интерактивный симулятор прямой и обратной кинематики 2-звенного робота-манипулятора с экспортом кода.">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    
+    <!-- Настройка и подключение MathJax для красивого рендеринга формул -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <a href="../index.html" class="back-link">&lt; Назад в хаб</a>
+            <div class="header-body">
+                <img src="../favicon.svg" class="header-logo" alt="Cyberhub Logo">
+                <div class="header-text">
+                    <h1>Cyberarm // Kinematics</h1>
+                    <div class="subtitle">Интерактивный симулятор обратной кинематики (IK)</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="calc-grid">
+            <section class="simulator-container">
+                <svg viewBox="0 0 300 300" id="armCanvas" class="arm-svg">
+                    <line x1="0" y1="150" x2="300" y2="150" class="grid-line" />
+                    <line x1="150" y1="0" x2="150" y2="300" class="grid-line" />
+                    
+                    <circle cx="150" cy="150" r="150" class="reach-circle" id="outerReach" />
+                    <circle cx="150" cy="150" r="30" class="reach-circle" />
+
+                    <line x1="150" y1="150" x2="150" y2="150" class="arm-link" id="link1" />
+                    <line x1="150" y1="150" x2="150" y2="150" class="arm-link-2" id="link2" />
+
+                    <circle cx="150" cy="150" r="7" class="joint" />
+                    <circle cx="150" cy="150" r="5" class="joint" id="joint2" />
+                    
+                    <circle cx="220" cy="100" r="8" class="target-point" id="target" />
+                </svg>
+                <div class="helper-text">
+                    * Перетаскивайте розовый маркер захвата мышкой
+                </div>
+            </section>
+
+            <section class="control-panel">
+                <div class="param-group">
+                    <div class="param-title">Геометрия манипулятора</div>
+                    <div class="slider-row">
+                        <label>Плечо L1</label>
+                        <input type="range" id="len1" min="40" max="100" value="80">
+                        <div class="value-display" id="len1-val">80px</div>
+                    </div>
+                    <div class="slider-row">
+                        <label>Предплечье L2</label>
+                        <input type="range" id="len2" min="30" max="90" value="70">
+                        <div class="value-display" id="len2-val">70px</div>
+                    </div>
+                </div>
+
+                <div class="param-group">
+                    <div class="param-title">Рассчитанные углы суставов</div>
+                    <div class="angle-output-box">
+                        <div class="angle-card">
+                            <div class="lbl">Сустав 1 (&theta;<sub>1</sub>)</div>
+                            <div class="val" id="theta1-display">0&deg;</div>
+                        </div>
+                        <div class="angle-card">
+                            <div class="val" id="theta2-display">0&deg;</div>
+                            <div class="lbl bottom-spacing">Сустав 2 (&theta;<sub>2</sub>)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="param-group">
+                    <div class="param-title">Экспорт для Arduino (Servo.write)</div>
+                    <div class="code-box" id="code-output">servo1.write(90);&#10;servo2.write(45);</div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Раздел: Математическое описание -->
+        <article class="seo-section">
+            <h2>Как это работает: Математика Обратной Кинематики</h2>
+            <p>В робототехнике существует два типа задач кинематики:</p>
+            <ul>
+                <li><strong>Прямая кинематика (FK):</strong> когда мы знаем углы в суставах $\theta_1$ и $\theta_2$ и хотим узнать, где окажется захват $(x, y)$.</li>
+                <li><strong>Обратная кинематика (IK):</strong> когда мы знаем целевую координату цели $(x, y)$ и нам нужно рассчитать углы суставов, чтобы рука туда дотянулась.</li>
+            </ul>
+            
+            <p>Для решения этой задачи в 2D-пространстве наш симулятор использует тригонометрический метод, основанный на <strong>теореме косинусов</strong>. Угол второго шарнира $\theta_2$ вычисляется по формуле:</p>
+            
+            <div class="math-block">
+                $$\cos(\theta_2) = \frac{x^2 + y^2 - L_1^2 - L_2^2}{2 L_1 L_2}$$
+            </div>
+
+            <p>Где $L_1$ и $L_2$ — длины плеча и предплечья, а $x, y$ — координаты цели относительно плечевого сустава. Как только мы находим угол $\theta_2$, угол первого сустава $\theta_1$ вычисляется через разность полярного угла цели и внутреннего угла треугольника:</p>
+
+            <div class="math-block">
+                $$\theta_1 = \arctan2(y, x) - \arctan2(L_2 \sin(\theta_2), L_1 + L_2 \cos(\theta_2))$$
+            </div>
+
+            <p>Если точка $(x, y)$ находится дальше, чем сумма длин звеньев ($L_1 + L_2$), то система не имеет решений — цель находится вне зоны досягаемости манипулятора. В этом случае алгоритм автоматически масштабирует вектор цели до максимального радиуса действия руки.</p>
+        </article>
+
+        <!-- Раздел: Интерактивный FAQ -->
+        <section class="faq-section">
+            <h2>[ 03 // ЧАСТО ЗАДАВАЕМЫЕ ВОПРОСЫ ]</h2>
+            <div class="faq-container">
+                
+                <div class="faq-item">
+                    <button class="faq-trigger">Почему манипулятор дергается, когда я подвожу маркер слишком близко к центру?</button>
+                    <div class="faq-content">
+                        <p>Это происходит из-за попадания в физически «мертвую зону». Если цель находится к центру ближе, чем разность длин звеньев $|L_1 - L_2|$, суставы математически не могут сложиться так, чтобы попасть в эту точку.</p>
+                        <p>Наш алгоритм автоматически ограничивает минимальный радиус, чтобы избежать деления на ноль в тригонометрических уравнениях и предотвратить «схлопывание» звеньев.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-trigger">Как перенести полученные углы на реальные сервоприводы (например, SG90)?</button>
+                    <div class="faq-content">
+                        <p>Стандартные хобби-сервоприводы работают в диапазоне от 0° до 180°. Код в блоке экспорта выдает углы в стандартной декартовой системе координат.</p>
+                        <p>При сборке физического робота важно правильно установить качалки сервоприводов:</p>
+                        <ul>
+                            <li>Для <strong>Сустава 1</strong> установите сервопривод так, чтобы при команде <code>servo1.write(90)</code> плечо $L_1$ стояло строго вертикально.</li>
+                            <li>Для <strong>Сустава 2</strong> команда <code>servo2.write(90)</code> должна соответствовать прямому углу (90°) между предплечьем и плечом.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-trigger">Зачем в коде используется функция Math.atan2 вместо обычного Math.atan?</button>
+                    <div class="faq-content">
+                        <p>Обычный арктангенс $\tan^{-1}(y/x)$ возвращает значения только в диапазоне от $-90^\circ$ до $+90^\circ$ и «не знает», в какой именно четверти декартовой системы координат лежит точка (так как знак минуса теряется при делении).</p>
+                        <p>Функция <code>Math.atan2(y, x)</code> принимает оба аргумента отдельно, корректно обрабатывает деление на ноль при $x = 0$ и возвращает точный угол в полном диапазоне от $-180^\circ$ до $+180^\circ$ (от $-\pi$ до $+\pi$ радианов), что жизненно важно для кругового вращения роборуки.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-trigger">Можно ли использовать этот расчет для 3-звенного манипулятора?</p>
+                    <div class="faq-content">
+                        <p>Для трех звеньев (и более) задача обратной кинематики становится «недоопределенной» — то есть для одной и той же конечной точки существует бесконечно много вариантов положения суставов.</p>
+                        <p>Чтобы решить ее, инженеры обычно либо жестко фиксируют угол наклона схвата (превращая задачу обратно в 2-звенную систему), либо используют численные методы оптимизации (например, алгоритм FABRIK или Якобианы).</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        &copy; 2026 CYBERARM // KINEMATICS. ЛАБОРАТОРИЯ РОБОТОТЕХНИКИ.
+    </footer>
+
+    <script>
+        const canvas = document.getElementById('armCanvas');
+        const target = document.getElementById('target');
+        const link1 = document.getElementById('link1');
+        const link2 = document.getElementById('link2');
+        const joint2 = document.getElementById('joint2');
+        const outerReach = document.getElementById('outerReach');
+
+        const len1Slider = document.getElementById('len1');
+        const len2Slider = document.getElementById('len2');
+        const len1Val = document.getElementById('len1-val');
+        const len2Val = document.getElementById('len2-val');
+
+        const theta1Display = document.getElementById('theta1-display');
+        const theta2Display = document.getElementById('theta2-display');
+        const codeOutput = document.getElementById('code-output');
+
+        const originX = 150;
+        const originY = 150;
+
+        let L1 = parseInt(len1Slider.value);
+        let L2 = parseInt(len2Slider.value);
+
+        let targetX = 80;
+        let targetY = 60;
+
+        let isDragging = false;
+
+        // Логика FAQ-аккордеона
+        document.querySelectorAll('.faq-trigger').forEach(trigger => {
+            trigger.addEventListener('click', () => {
+                const item = trigger.parentNode;
+                const isActive = item.classList.contains('active');
+                
+                // Закрываем все открытые вкладки (если нужно поведение "только одна открытая вкладка")
+                document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
+                
+                if (!isActive) {
+                    item.classList.add('active');
+                }
+            });
+        });
+
+        len1Slider.addEventListener('input', (e) => {
+            L1 = parseInt(e.target.value);
+            len1Val.textContent = L1 + 'px';
+            updateReachCircles();
+            calculateIK(targetX, targetY);
+        });
+
+        len2Slider.addEventListener('input', (e) => {
+            L2 = parseInt(e.target.value);
+            len2Val.textContent = L2 + 'px';
+            updateReachCircles();
+            calculateIK(targetX, targetY);
+        });
+
+        function updateReachCircles() {
+            outerReach.setAttribute('r', L1 + L2);
+        }
+
+        target.addEventListener('mousedown', () => { isDragging = true; });
+        window.addEventListener('mouseup', () => { isDragging = false; });
+        
+        target.addEventListener('touchstart', () => { isDragging = true; });
+        window.addEventListener('touchend', () => { isDragging = false; });
+
+        canvas.addEventListener('mousemove', handlePointerMove);
+        canvas.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 0) {
+                handlePointerMove(e.touches[0]);
+            }
+        });
+
+        function handlePointerMove(e) {
+            if (!isDragging) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.clientX - rect.left;
+            const clientY = e.clientY - rect.top;
+
+            const svgX = (clientX / rect.width) * 300;
+            const svgY = (clientY / rect.height) * 300;
+
+            targetX = svgX - originX;
+            targetY = originY - svgY;
+
+            calculateIK(targetX, targetY);
+        }
+
+        function calculateIK(tx, ty) {
+            const dist = Math.sqrt(tx * tx + ty * ty);
+            const maxReach = L1 + L2;
+            const minReach = Math.abs(L1 - L2);
+
+            let x = tx;
+            let y = ty;
+
+            if (dist > maxReach) {
+                const angle = Math.atan2(ty, tx);
+                x = maxReach * Math.cos(angle);
+                y = maxReach * Math.sin(angle);
+            } else if (dist < minReach) {
+                const angle = Math.atan2(ty, tx);
+                x = (minReach + 0.1) * Math.cos(angle);
+                y = (minReach + 0.1) * Math.sin(angle);
+            }
+
+            let cosTheta2 = (x * x + y * y - L1 * L1 - L2 * L2) / (2 * L1 * L2);
+            cosTheta2 = Math.max(-1, Math.min(1, cosTheta2));
+
+            const theta2Rad = Math.acos(cosTheta2);
+            const theta1Rad = Math.atan2(y, x) - Math.atan2(L2 * Math.sin(theta2Rad), L1 + L2 * Math.cos(theta2Rad));
+
+            let theta1Deg = Math.round(theta1Rad * (180 / Math.PI));
+            let theta2Deg = Math.round(theta2Rad * (180 / Math.PI));
+
+            if (theta1Deg < 0) theta1Deg += 360;
+            
+            drawArm(theta1Rad, theta2Rad, x, y);
+            updateUI(theta1Deg, theta2Deg);
+        }
+
+        function drawArm(t1, t2, targetXMath, targetYMath) {
+            const j2x = originX + L1 * Math.cos(t1);
+            const j2y = originY - L1 * Math.sin(t1);
+
+            const endX = originX + targetXMath;
+            const endY = originY - targetYMath;
+
+            link1.setAttribute('x2', j2x);
+            link1.setAttribute('y2', j2y);
+
+            link2.setAttribute('x1', j2x);
+            link2.setAttribute('y1', j2y);
+            link2.setAttribute('x2', endX);
+            link2.setAttribute('y2', endY);
+
+            joint2.setAttribute('cx', j2x);
+            joint2.setAttribute('cy', j2y);
+
+            target.setAttribute('cx', endX);
+            target.setAttribute('cy', endY);
+        }
+
+        function updateUI(deg1, deg2) {
+            theta1Display.innerHTML = deg1 + '&deg;';
+            theta2Display.innerHTML = deg2 + '&deg;';
+
+            codeOutput.textContent = 
+`// Код для прошивки Arduino
+servo1.write(${deg1}); // Угол плеча
+servo2.write(${deg2}); // Угол локтя`;
+        }
+
+        window.onload = () => {
+            updateReachCircles();
+            calculateIK(targetX, targetY);
+        };
+    </script>
+</body>
+</html>

@@ -4,177 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cyberchord // Fret — Интерактивный справочник гитарных аккордов</title>
-    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
     <meta name="description" content="Интерактивный неоновый визуализатор гитарных аккордов со звуковым синтезатором. Удобная аппликатура для начинающих гитаристов.">
     <link rel="stylesheet" href="../css/global.css">
-    
-    <style>
-        .calc-grid {
-            display: grid;
-            grid-template-columns: 0.9fr 1.1fr;
-            gap: 32px;
-            margin-bottom: 48px;
-        }
-
-        @media (max-width: 850px) {
-            .calc-grid {
-                grid-template-columns: 1fr;
-                gap: 32px;
-            }
-        }
-
-        .chord-control {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-        }
-
-        .chord-selector {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-        }
-
-        .chord-btn {
-            background-color: var(--bg-input);
-            border: 1px solid var(--border);
-            color: var(--text-secondary);
-            padding: 12px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: bold;
-            font-family: monospace;
-            transition: all 0.2s ease;
-            text-align: center;
-        }
-
-        .chord-btn:hover {
-            border-color: var(--neon-pink);
-            color: var(--text-primary);
-        }
-
-        .chord-btn.active {
-            border-color: var(--neon-pink);
-            color: var(--text-primary);
-            box-shadow: 0 0 14px var(--shadow-pink);
-        }
-
-        .chord-info-card {
-            background: rgba(255, 255, 255, 0.01);
-            border: 1px dashed var(--border);
-            border-radius: 12px;
-            padding: 20px;
-        }
-
-        .chord-name-large {
-            font-size: 2.2rem;
-            font-weight: 900;
-            color: var(--neon-pink);
-            text-shadow: 0 0 15px var(--shadow-pink);
-            font-family: monospace;
-            margin-bottom: 8px;
-        }
-
-        .chord-desc {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            line-height: 1.6;
-            margin-bottom: 20px;
-        }
-
-        .strum-btn {
-            background: transparent;
-            border: 1px solid var(--neon-cyan);
-            color: var(--neon-cyan);
-            padding: 14px;
-            border-radius: 10px;
-            font-family: monospace;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            cursor: pointer;
-            width: 100%;
-            transition: all 0.2s ease;
-            box-shadow: 0 0 10px rgba(0, 243, 255, 0.05);
-        }
-
-        .strum-btn:hover {
-            background: rgba(0, 243, 255, 0.05);
-            box-shadow: 0 0 15px var(--shadow-cyan);
-        }
-
-        .fretboard-container {
-            background-color: var(--bg-input);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 28px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-        }
-
-        .fretboard-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            background-color: var(--neon-cyan);
-            box-shadow: 0 0 12px var(--neon-cyan);
-        }
-
-        svg {
-            max-width: 280px;
-            height: auto;
-        }
-
-        .fret-line {
-            stroke: var(--text-muted);
-            stroke-width: 2px;
-        }
-        .string-line {
-            stroke: var(--text-muted);
-            stroke-linecap: round;
-        }
-        .nut-line {
-            stroke: var(--text-primary);
-            stroke-width: 6px;
-        }
-        .finger-marker {
-            fill: var(--neon-pink);
-            filter: drop-shadow(0px 0px 6px var(--neon-pink));
-        }
-        .finger-text {
-            fill: var(--text-primary);
-            font-size: 11px;
-            font-family: monospace;
-            font-weight: bold;
-            text-anchor: middle;
-            dominant-baseline: central;
-        }
-        .open-mute-text {
-            fill: var(--text-secondary);
-            font-size: 12px;
-            font-family: monospace;
-            font-weight: bold;
-            text-anchor: middle;
-        }
-        .open-mute-text.active-open {
-            fill: var(--neon-cyan);
-            filter: drop-shadow(0px 0px 4px var(--neon-cyan));
-        }
-    </style>
+    <link class="favicon-link" rel="icon" type="image/svg+xml" href="../favicon.svg">
 </head>
 <body>
 
     <div class="container">
         <header>
             <a href="../index.html" class="back-link">&lt; Назад в хаб</a>
-            <h1>Cyberchord // Fret v1.0</h1>
-            <div class="subtitle">Интерактивный справочник гитарных аккордов со звуковым синтезом</div>
+            <div class="header-body">
+                <img src="../favicon.svg" class="header-logo" alt="Cyberhub Logo">
+                <div class="header-text">
+                    <h1>Cyberchord // Fret v1.0</h1>
+                    <div class="subtitle">Интерактивный справочник гитарных аккордов со звуковым синтезом</div>
+                </div>
+            </div>
         </header>
 
         <div class="calc-grid">
@@ -198,8 +43,8 @@
             </section>
 
             <section class="fretboard-container">
-                <svg viewBox="0 0 240 320" width="100%" height="100%">
-                    <rect x="20" y="40" width="200" height="250" fill="rgba(18, 20, 28, 0.7)" rx="4" stroke="var(--border)" stroke-width="2" />
+                <svg viewBox="0 0 240 320" class="fretboard-svg">
+                    <rect x="20" y="40" width="200" height="250" class="fretboard-bg" rx="4" />
                     
                     <line x1="20" y1="40" x2="220" y2="40" class="nut-line" />
                     
@@ -209,8 +54,8 @@
                     <line x1="20" y1="240" x2="220" y2="240" class="fret-line" />
                     <line x1="20" y1="290" x2="220" y2="290" class="fret-line" />
 
-                    <circle cx="120" cy="165" r="4" fill="var(--text-muted)" opacity="0.6" />
-                    <circle cx="120" cy="265" r="4" fill="var(--text-muted)" opacity="0.6" />
+                    <circle cx="120" cy="165" r="4" class="string-label" opacity="0.6" />
+                    <circle cx="120" cy="265" r="4" class="string-label" opacity="0.6" />
                     
                     <line x1="20" y1="40" x2="20" y2="290" class="string-line" stroke-width="3" />
                     <line x1="60" y1="40" x2="60" y2="290" class="string-line" stroke-width="2.5" />
@@ -219,12 +64,12 @@
                     <line x1="180" y1="40" x2="180" y2="290" class="string-line" stroke-width="1.2" />
                     <line x1="220" y1="40" x2="220" y2="290" class="string-line" stroke-width="0.8" />
 
-                    <text x="20" y="310" class="finger-text" style="fill: var(--text-muted)">E</text>
-                    <text x="60" y="310" class="finger-text" style="fill: var(--text-muted)">A</text>
-                    <text x="100" y="310" class="finger-text" style="fill: var(--text-muted)">D</text>
-                    <text x="140" y="310" class="finger-text" style="fill: var(--text-muted)">G</text>
-                    <text x="180" y="310" class="finger-text" style="fill: var(--text-muted)">B</text>
-                    <text x="220" y="310" class="finger-text" style="fill: var(--text-muted)">e</text>
+                    <text x="20" y="310" class="finger-text string-label">E</text>
+                    <text x="60" y="310" class="finger-text string-label">A</text>
+                    <text x="100" y="310" class="finger-text string-label">D</text>
+                    <text x="140" y="310" class="finger-text string-label">G</text>
+                    <text x="180" y="310" class="finger-text string-label">B</text>
+                    <text x="220" y="310" class="finger-text string-label">e</text>
                     
                     <g id="markers-group"></g>
                     <g id="dots-group"></g>
@@ -307,9 +152,7 @@
         };
 
         let activeChord = 'Am';
-
         const stringBaseFreqs = [82.41, 110.00, 146.83, 196.00, 246.94, 329.63];
-
         const stringX = [20, 60, 100, 140, 180, 220];
         const fretY = [0, 65, 115, 165, 215, 265];
 
@@ -337,13 +180,9 @@
                 const x = stringX[s];
 
                 if (val === 'X') {
-                    markersGroup.innerHTML += `
-                        <text x="${x}" y="28" class="open-mute-text">X</text>
-                    `;
+                    markersGroup.innerHTML += `<text x="${x}" y="28" class="open-mute-text">X</text>`;
                 } else if (val === 0) {
-                    markersGroup.innerHTML += `
-                        <text x="${x}" y="28" class="open-mute-text active-open">O</text>
-                    `;
+                    markersGroup.innerHTML += `<text x="${x}" y="28" class="open-mute-text active-open">O</text>`;
                 } else {
                     const y = fretY[val];
                     const finger = chord.fingers[s];
@@ -367,7 +206,6 @@
             document.getElementById('chord-desc').textContent = chordDB[chordKey].desc;
 
             drawChord(chordKey);
-            
             strumActiveChord();
         }
 
@@ -377,9 +215,7 @@
             
             chord.frets.forEach((fret, stringIdx) => {
                 if (fret === 'X') return;
-                
                 const freq = stringBaseFreqs[stringIdx] * Math.pow(2, fret / 12);
-                
                 const delay = stringIdx * 0.06;
                 playPluck(freq, delay);
             });
