@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор стоимости 3D-печати — Простой расчет себестоимости</title>
+    <meta name="description" content="Интерактивный калькулятор себестоимости 3D-печати. Простой и точный расчет расходов на пластик, электроэнергию, амортизацию принтера и работу на лету.">
+    <meta name="keywords" content="калькулятор 3d печати, расчет стоимости 3д печати, себестоимость 3д печати, калькулятор пластика fdm, расчет цены 3d печати, калькулятор pla abs petg">
+    
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://yourdomain.ru/">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Cyberprint 3D Engine",
+      "url": "https://yourdomain.ru/",
+      "operatingSystem": "All",
+      "applicationCategory": "BusinessApplication",
+      "browserRequirements": "Requires HTML5/JavaScript",
+      "genre": "Calculator",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "RUB"
+      },
+      "abstract": "Калькулятор для мгновенного расчета реальной себестоимости и наценки на 3D-печать."
+    }
+    </script>
+
+    <style>
+        :root {
+            --bg-base: #06070a;
+            --bg-panel: #0d0e12;
+            --bg-input: #12141c;
+            --border: #1e222d;
+            --border-focus: #00f3ff;
+            --neon-cyan: #00f3ff;
+            --neon-pink: #ff0055;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #475569;
+            --shadow-cyan: rgba(0, 243, 255, 0.15);
+            --shadow-pink: rgba(255, 0, 85, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+        }
+
+        header {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 24px;
+            margin-bottom: 32px;
+            text-align: left;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 12px var(--shadow-cyan);
+        }
+
+        .subtitle {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 6px;
+            font-family: monospace;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .calc-grid {
+            display: grid;
+            grid-template-columns: 1.25fr 0.75fr;
+            gap: 32px;
+            margin-bottom: 48px;
+        }
+
+        @media (max-width: 850px) {
+            .calc-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+            .container {
+                padding: 24px 16px;
+            }
+        }
+
+        .calculator-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px 16px;
+        }
+
+        @media (max-width: 480px) {
+            .calculator-inputs {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 700;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        input {
+            width: 100%;
+            background-color: var(--bg-input);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 14px 16px;
+            padding-right: 50px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: monospace;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: var(--border-focus);
+            box-shadow: 0 0 14px var(--shadow-cyan);
+        }
+
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .unit {
+            position: absolute;
+            right: 16px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            pointer-events: none;
+            text-transform: uppercase;
+            font-family: monospace;
+        }
+
+        .results-panel {
+            background-color: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .results-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background-color: var(--neon-pink);
+            box-shadow: 0 0 12px var(--neon-pink);
+        }
+
+        .result-title {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .total-price {
+            font-size: 2.6rem;
+            font-weight: 900;
+            color: var(--neon-pink);
+            text-shadow: 0 0 15px var(--shadow-pink);
+            font-family: monospace;
+            margin-bottom: 24px;
+            word-break: break-all;
+        }
+
+        .breakdown {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            border-top: 1px dashed var(--border);
+            padding-top: 24px;
+        }
+
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+        }
+
+        .breakdown-label {
+            color: var(--text-secondary);
+        }
+
+        .breakdown-value {
+            font-family: monospace;
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        .seo-section {
+            border-top: 1px solid var(--border);
+            padding-top: 48px;
+        }
+
+        .seo-section h2 {
+            color: var(--neon-cyan);
+            font-size: 1.4rem;
+            margin-top: 32px;
+            margin-bottom: 18px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            border-left: 3px solid var(--neon-pink);
+            padding-left: 14px;
+            text-shadow: 0 0 10px var(--shadow-cyan);
+        }
+
+        .seo-section h2:first-of-type {
+            margin-top: 0;
+        }
+
+        .seo-section h3 {
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            margin-top: 24px;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .seo-section p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.7;
+            margin-bottom: 18px;
+        }
+
+        .formula-box {
+            background-color: var(--bg-input);
+            border: 1px dashed var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            margin: 20px 0;
+            text-align: center;
+            font-family: monospace;
+            font-size: 1rem;
+            color: var(--text-primary);
+            overflow-x: auto;
+        }
+
+        .formula-box span.math {
+            color: var(--neon-cyan);
+            font-weight: 700;
+        }
+
+        .seo-section ul {
+            list-style: none;
+            margin-bottom: 24px;
+        }
+
+        .seo-section li {
+            position: relative;
+            padding-left: 24px;
+            margin-bottom: 12px;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .seo-section li::before {
+            content: '>';
+            position: absolute;
+            left: 0;
+            color: var(--neon-cyan);
+            font-weight: 900;
+            font-family: monospace;
+            text-shadow: 0 0 6px var(--shadow-cyan);
+        }
+
+        .seo-table-wrapper {
+            overflow-x: auto;
+            margin: 24px 0;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+        }
+
+        .seo-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            text-align: left;
+            min-width: 500px;
+        }
+
+        .seo-table th, .seo-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .seo-table th {
+            background-color: var(--bg-input);
+            color: var(--neon-cyan);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.8rem;
+        }
+
+        .seo-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .seo-table tr:nth-child(even) {
+            background-color: rgba(255, 255, 255, 0.01);
+        }
+
+        .faq-container {
+            margin-top: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .faq-item {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--bg-input);
+            overflow: hidden;
+            transition: border-color 0.2s ease;
+        }
+
+        .faq-item:hover {
+            border-color: var(--border-focus);
+        }
+
+        .faq-item summary {
+            padding: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            color: var(--text-primary);
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.95rem;
+            user-select: none;
+        }
+
+        .faq-item summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .faq-item summary::after {
+            content: '+';
+            color: var(--neon-cyan);
+            font-weight: bold;
+            font-size: 1.2rem;
+            transition: transform 0.2s ease;
+        }
+
+        .faq-item[open] summary::after {
+            content: '−';
+            color: var(--neon-pink);
+        }
+
+        .faq-content {
+            padding: 0 18px 18px 18px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            border-top: 1px solid rgba(30, 34, 45, 0.5);
+            padding-top: 14px;
+        }
+
+        footer {
+            margin-top: 40px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: center;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Cyberprint // Engine v1.2</h1>
+            <div class="subtitle">Точный расчет себестоимости и стоимости 3D-печати</div>
+        </header>
+
+        <div class="calc-grid">
+            <section class="calculator-inputs">
+                <div class="input-group">
+                    <label for="weight">Вес модели</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="weight" value="150" min="0" oninput="calculate()">
+                        <span class="unit">г</span>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="filament-price">Цена филамента</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="filament-price" value="2000" min="0" oninput="calculate()">
+                        <span class="unit">₽/кг</span>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="time">Время печати</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="time" value="8" min="0" step="0.5" oninput="calculate()">
+                        <span class="unit">ч</span>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="power">Мощность принтера</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="power" value="150" min="0" oninput="calculate()">
+                        <span class="unit">Вт</span>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="electricity-price">Тариф энергии</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="electricity-price" value="5.5" min="0" step="0.1" oninput="calculate()">
+                        <span class="unit">₽/кВт</span>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="depreciation">Амортизация</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="depreciation" value="15" min="0" oninput="calculate()">
+                        <span class="unit">₽/ч</span>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="post-process">Постобработка</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="post-process" value="0" min="0" oninput="calculate()">
+                        <span class="unit">₽</span>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="markup">Наценка (Прибыль)</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="markup" value="50" min="0" oninput="calculate()">
+                        <span class="unit">%</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="results-panel">
+                <div>
+                    <div class="result-title">Стоимость заказа</div>
+                    <div class="total-price" id="total-price">0.00 ₽</div>
+                </div>
+
+                <div class="breakdown">
+                    <div class="breakdown-item">
+                        <span class="breakdown-label">Материал (пластик):</span>
+                        <span class="breakdown-value" id="cost-filament">0.00 ₽</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="breakdown-label">Электроэнергия:</span>
+                        <span class="breakdown-value" id="cost-energy">0.00 ₽</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="breakdown-label">Амортизация оборудования:</span>
+                        <span class="breakdown-value" id="cost-depreciation">0.00 ₽</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="breakdown-label">Стоимость постобработки:</span>
+                        <span class="breakdown-value" id="cost-post">0.00 ₽</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="breakdown-label">Чистая себестоимость:</span>
+                        <span class="breakdown-value" id="cost-base">0.00 ₽</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <article class="seo-section">
+            <h2>Как правильно рассчитать себестоимость 3D-печати и не уйти в минус</h2>
+            <p>Частая ошибка тех, кто только начинает печатать на заказ — оценивать работу исключительно по весу потраченного пластика. Кажется, что если на модель ушло 100 грамм филамента, то себестоимость копеечная. Но на практике всё гораздо сложнее. В процессе работы изнашиваются детали принтера, тратится электроэнергия, а ручная обработка готовой модели порой занимает больше времени, чем сама печать.</p>
+            <p>Этот калькулятор создан для того, чтобы помочь вам учесть все скрытые расходы. Мы объединили ключевые параметры в простую систему: вам достаточно один раз указать технические характеристики вашего принтера, тариф ЖКХ и стоимость материалов, чтобы мгновенно получать объективную цену для клиента.</p>
+
+            <h3>Формула, по которой рассчитывается стоимость</h3>
+            <p>В основе алгоритма лежит прозрачная математика без скрытых коэффициентов:</p>
+            <div class="formula-box">
+                Себестоимость = <span class="math">M + E + A + P</span>
+            </div>
+            <p>Давайте подробно разберем каждую составляющую этой формулы:</p>
+            <ul>
+                <li><strong>M (Материал)</strong> — стоимость израсходованного пластика. Рассчитывается исходя из веса модели (включая поддержки и технологическую кайму) и цены за катушку.</li>
+                <li><strong>E (Электроэнергия)</strong> — расход электричества за время работы принтера. Зависит от мощности блока питания и вашего локального тарифа.</li>
+                <li><strong>A (Амортизация)</strong> — постепенный износ оборудования. Сюда закладывается небольшая сумма за каждый час работы принтера, чтобы сформировать фонд на замену сопел, ремней или нагревателей.</li>
+                <li><strong>P (Постобработка)</strong> — оценка вашего личного времени и расходников (наждачная бумага, химические растворители, грунтовка), затраченных на доводку детали.</li>
+            </ul>
+            <p>К полученной себестоимости прибавляется процент наценки — ваша чистая прибыль за выполнение заказа и компенсацию рисков (например, возможного брака).</p>
+
+            <h2>Физические свойства и особенности популярных филаментов</h2>
+            <p>Для корректного расчета важно учитывать плотность и условия работы с каждым типом пластика. Ниже приведена справочная таблица:</p>
+            
+            <div class="seo-table-wrapper">
+                <table class="seo-table">
+                    <thead>
+                        <tr>
+                            <th>Пластик</th>
+                            <th>Плотность (г/см³)</th>
+                            <th>Ориентировочная цена</th>
+                            <th>Область применения и особенности</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>PLA</strong></td>
+                            <td>1.24</td>
+                            <td>от 1 500 ₽ за кг</td>
+                            <td>Простой в работе материал растительного происхождения. Практически не дает усадки, подходит для декоративных изделий, макетов и прототипов. Плохо переносит нагрев выше 50°C.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>PETG</strong></td>
+                            <td>1.27</td>
+                            <td>от 1 700 ₽ за кг</td>
+                            <td>Прочный, ударостойкий и химически стойкий пластик. Отлично подходит для функциональных деталей, корпусов и крепежей. Из минусов — склонность к образованию тонких нитей при печати.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>ABS</strong></td>
+                            <td>1.04</td>
+                            <td>от 1 400 ₽ за кг</td>
+                            <td>Классический инженерный пластик. Прочный, термостойкий, легко поддается химической полировке (например, ацетоном). Требует закрытой камеры принтера из-за высокой термоусадки.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>TPU / Flex</strong></td>
+                            <td>1.20</td>
+                            <td>от 2 500 ₽ за кг</td>
+                            <td>Гибкий, резиноподобный материал. Идеален для уплотнителей, защитных чехлов и амортизирующих прокладок. Требует медленной печати и качественной подачи филамента.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Nylon (Нейлон)</strong></td>
+                            <td>1.14</td>
+                            <td>от 3 500 ₽ за кг</td>
+                            <td>Чрезвычайно износостойкий пластик с низким коэффициентом трения. Применяется для печати шестеренок и подшипников. Очень гигроскопичен — требует обязательной сушки перед работой.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Практические советы по оптимизации затрат на печать</h2>
+            <p>Если вам нужно снизить себестоимость детали без потери качества, обратите внимание на настройки в слайсере:</p>
+            <ul>
+                <li><strong>Оптимизируйте процент заполнения:</strong> Для большинства декоративных или ненагруженных изделий достаточно 10-15% заполнения. Использование шаблона «гироид» (Gyroid) обеспечит высокую жесткость при минимальном расходе материала.</li>
+                <li><strong>Увеличьте высоту слоя:</strong> Если эстетика поверхности не критична (например, для скрытых технических деталей), печатайте слоем 0.28 мм вместо 0.12 мм. Это сократит время работы принтера в два раза, снизив расходы на свет и амортизацию.</li>
+                <li><strong>Минимизируйте поддержки:</strong> Старайтесь ориентировать модель на столе так, чтобы сократить объем нависающих элементов. Поддержки требуют дополнительного пластика, который после завершения работы уходит в отходы.</li>
+                <li><strong>Регулярно обслуживайте оборудование:</strong> Своевременная смазка направляющих и калибровка стола снижают вероятность брака на поздних этапах печати, экономя ваше время и материалы.</li>
+            </ul>
+
+            <h2>Часто задаваемые вопросы (FAQ)</h2>
+            <div class="faq-container">
+                <details class="faq-item">
+                    <summary>Как перевести длину филамента из слайсера в граммы?</summary>
+                    <div class="faq-content">
+                        Расход пластика зависит от его плотности. Для стандартной нити диаметром 1.75 мм можно использовать усредненное правило: 1 метр PLA весит примерно 3 грамма. Соответственно, если слайсер указывает длину в 50 метров, вес модели составит приблизительно 150 грамм. Для других материалов это значение будет незначительно корректироваться в соответствии с их плотностью.
+                    </div>
+                </details>
+                <details class="faq-item">
+                    <summary>Какое реальное энергопотребление у домашнего 3D-принтера?</summary>
+                    <div class="faq-content">
+                        Максимальная мощность потребляется только во время первоначального нагрева стола и сопла (в среднем от 250 до 450 Вт). В процессе самой печати нагревательные элементы включаются циклически для поддержания температуры. Среднее непрерывное потребление большинства современных FDM-принтеров составляет около 100–150 Вт в час.
+                    </div>
+                </details>
+                <details class="faq-item">
+                    <summary>Зачем нужно отдельно закладывать амортизацию?</summary>
+                    <div class="faq-content">
+                        Подвижные узлы принтера имеют ограниченный ресурс. Рано или поздно вам придется заменить латунное сопло, износившийся термобарьер, вентилятор обдува или тефлоновую трубку. Если не закладывать эти расходы (даже символические 10–15 рублей за час работы) в стоимость каждого заказа, любые ремонтные работы вам придется оплачивать полностью из собственной прибыли.
+                    </div>
+                </details>
+            </div>
+        </article>
+    </div>
+
+    <footer>
+        &copy; 2026 CYBERPRINT // ENGINE. РАСЧЕТ СЕБЕСТОИМОСТИ И СТОИМОСТИ 3D-ПЕЧАТИ.
+    </footer>
+
+    <script>
+        function calculate() {
+            const weight = parseFloat(document.getElementById('weight').value) || 0;
+            const filamentPrice = parseFloat(document.getElementById('filament-price').value) || 0;
+            const time = parseFloat(document.getElementById('time').value) || 0;
+            const power = parseFloat(document.getElementById('power').value) || 0;
+            const electricityPrice = parseFloat(document.getElementById('electricity-price').value) || 0;
+            const depreciation = parseFloat(document.getElementById('depreciation').value) || 0;
+            const postProcess = parseFloat(document.getElementById('post-process').value) || 0;
+            const markup = parseFloat(document.getElementById('markup').value) || 0;
+
+            const costFilament = (weight / 1000) * filamentPrice;
+            const costEnergy = (power / 1000) * time * electricityPrice;
+            const costDepreciation = time * depreciation;
+            
+            const costBase = costFilament + costEnergy + costDepreciation + postProcess;
+            const totalPrice = costBase * (1 + markup / 100);
+
+            document.getElementById('cost-filament').textContent = costFilament.toFixed(2) + ' ₽';
+            document.getElementById('cost-energy').textContent = costEnergy.toFixed(2) + ' ₽';
+            document.getElementById('cost-depreciation').textContent = costDepreciation.toFixed(2) + ' ₽';
+            document.getElementById('cost-post').textContent = postProcess.toFixed(2) + ' ₽';
+            document.getElementById('cost-base').textContent = costBase.toFixed(2) + ' ₽';
+            document.getElementById('total-price').textContent = totalPrice.toFixed(2) + ' ₽';
+        }
+
+        window.onload = calculate;
+    </script>
+</body>
+</html>
