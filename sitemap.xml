@@ -9,7 +9,14 @@
   </url>
   <!-- Калькулятор 3D-печати -->
   <url>
-    <loc>https://cybertools-hub.ru/3d-printer/</loc>
+    <loc>https://cybertools-hub.ru/3d-calculator/</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- Калькулятор шагов двигателя -->
+  <url>
+    <loc>https://cybertools-hub.ru/steps-calculator/</loc>
     <lastmod>2026-07-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>

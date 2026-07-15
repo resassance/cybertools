@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор шагов двигателя (Steps/mm) — Калибровка 3D-принтера</title>
+    <meta name="description" content="Интерактивный калькулятор шагов двигателя (Steps/mm) для осей 3D-принтеров и ЧПУ. Генерация настроек Marlin и Klipper (rotation_distance) на лету.">
+    <meta name="keywords" content="калькулятор шагов двигателя, steps per mm, расчет шагов 3d принтер, калибровка экструдера, klipper rotation_distance расчет, marlin m92 расчет, шаги nema 17">
+    
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://cybertools-hub.ru/steps-calculator/">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Cybersteps Engine",
+      "url": "https://cybertools-hub.ru/steps-calculator/",
+      "operatingSystem": "All",
+      "applicationCategory": "BusinessApplication",
+      "browserRequirements": "Requires HTML5/JavaScript",
+      "genre": "Calculator",
+      "abstract": "Калькулятор шагов двигателя для точной калибровки осей 3D-принтера под Marlin и Klipper."
+    }
+    </script>
+
+    <style>
+        :root {
+            --bg-base: #06070a;
+            --bg-panel: #0d0e12;
+            --bg-input: #12141c;
+            --border: #1e222d;
+            --border-focus: #00f3ff;
+            --neon-cyan: #00f3ff;
+            --neon-pink: #ff0055;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #475569;
+            --shadow-cyan: rgba(0, 243, 255, 0.15);
+            --shadow-pink: rgba(255, 0, 85, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+        }
+
+        header {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 24px;
+            margin-bottom: 32px;
+            text-align: left;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-family: monospace;
+            font-size: 0.8rem;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: bold;
+            transition: color 0.2s ease;
+        }
+
+        .back-link:hover {
+            color: var(--neon-cyan);
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 12px var(--shadow-cyan);
+        }
+
+        .subtitle {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 6px;
+            font-family: monospace;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .calc-grid {
+            display: grid;
+            grid-template-columns: 1.25fr 0.75fr;
+            gap: 32px;
+            margin-bottom: 48px;
+        }
+
+        @media (max-width: 850px) {
+            .calc-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+            .container {
+                padding: 24px 16px;
+            }
+        }
+
+        .tabs-container {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .tab-btn {
+            background-color: var(--bg-input);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: monospace;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            border-color: var(--neon-cyan);
+            color: var(--text-primary);
+            box-shadow: 0 0 14px var(--shadow-cyan);
+        }
+
+        .calculator-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px 16px;
+        }
+
+        @media (max-width: 480px) {
+            .calculator-inputs {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .hidden-field {
+            display: none !important;
+        }
+
+        label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 700;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        input, select {
+            width: 100%;
+            background-color: var(--bg-input);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 14px 16px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        input {
+            padding-right: 50px;
+            font-family: monospace;
+        }
+
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg fill='%2394a3b8' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            cursor: pointer;
+            padding-right: 40px;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--border-focus);
+            box-shadow: 0 0 14px var(--shadow-cyan);
+        }
+
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .unit {
+            position: absolute;
+            right: 16px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            pointer-events: none;
+            text-transform: uppercase;
+            font-family: monospace;
+        }
+
+        .results-panel {
+            background-color: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .results-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background-color: var(--neon-cyan);
+            box-shadow: 0 0 12px var(--neon-cyan);
+        }
+
+        .result-title {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .total-price {
+            font-size: 2.6rem;
+            font-weight: 900;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 15px var(--shadow-cyan);
+            font-family: monospace;
+            margin-bottom: 24px;
+            word-break: break-all;
+        }
+
+        .breakdown {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            border-top: 1px dashed var(--border);
+            padding-top: 24px;
+        }
+
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+        }
+
+        .breakdown-label {
+            color: var(--text-secondary);
+        }
+
+        .breakdown-value {
+            font-family: monospace;
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        .copy-cmd-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--neon-pink);
+            padding: 2px 6px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            font-family: monospace;
+            font-weight: bold;
+            transition: all 0.2s;
+            margin-left: 8px;
+        }
+
+        .copy-cmd-btn:hover {
+            border-color: var(--neon-pink);
+            background: rgba(255, 0, 85, 0.05);
+        }
+
+        .seo-section {
+            border-top: 1px solid var(--border);
+            padding-top: 48px;
+        }
+
+        .seo-section h2 {
+            color: var(--neon-cyan);
+            font-size: 1.4rem;
+            margin-top: 32px;
+            margin-bottom: 18px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            border-left: 3px solid var(--neon-pink);
+            padding-left: 14px;
+            text-shadow: 0 0 10px var(--shadow-cyan);
+        }
+
+        .seo-section h2:first-of-type {
+            margin-top: 0;
+        }
+
+        .seo-section h3 {
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            margin-top: 24px;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .seo-section p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.7;
+            margin-bottom: 18px;
+        }
+
+        .formula-box {
+            background-color: var(--bg-input);
+            border: 1px dashed var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            margin: 20px 0;
+            text-align: center;
+            font-family: monospace;
+            font-size: 1rem;
+            color: var(--text-primary);
+            overflow-x: auto;
+        }
+
+        .formula-box span.math {
+            color: var(--neon-cyan);
+            font-weight: 700;
+        }
+
+        .seo-section ul {
+            list-style: none;
+            margin-bottom: 24px;
+        }
+
+        .seo-section li {
+            position: relative;
+            padding-left: 24px;
+            margin-bottom: 12px;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .seo-section li::before {
+            content: '>';
+            position: absolute;
+            left: 0;
+            color: var(--neon-cyan);
+            font-weight: 900;
+            font-family: monospace;
+            text-shadow: 0 0 6px var(--shadow-cyan);
+        }
+
+        .seo-table-wrapper {
+            overflow-x: auto;
+            margin: 24px 0;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+        }
+
+        .seo-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            text-align: left;
+            min-width: 500px;
+        }
+
+        .seo-table th, .seo-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .seo-table th {
+            background-color: var(--bg-input);
+            color: var(--neon-cyan);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.8rem;
+        }
+
+        .seo-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .seo-table tr:nth-child(even) {
+            background-color: rgba(255, 255, 255, 0.01);
+        }
+
+        .faq-container {
+            margin-top: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .faq-item {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--bg-input);
+            overflow: hidden;
+            transition: border-color 0.2s ease;
+        }
+
+        .faq-item:hover {
+            border-color: var(--border-focus);
+        }
+
+        .faq-item summary {
+            padding: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            color: var(--text-primary);
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.95rem;
+            user-select: none;
+        }
+
+        .faq-item summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .faq-item summary::after {
+            content: '+';
+            color: var(--neon-cyan);
+            font-weight: bold;
+            font-size: 1.2rem;
+            transition: transform 0.2s ease;
+        }
+
+        .faq-item[open] summary::after {
+            content: '−';
+            color: var(--neon-pink);
+        }
+
+        .faq-content {
+            padding: 0 18px 18px 18px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            border-top: 1px solid rgba(30, 34, 45, 0.5);
+            padding-top: 14px;
+        }
+
+        footer {
+            margin-top: 40px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: center;
+            font-family: monospace;
+        }
+    </style>
+    <!-- Yandex Autoplacement 19597235 -->
+    <script src="https://yandex.ru/ads/system/context.js" async></script>
+    <script data-page-id="19597235" src="https://yandex.ru/ads/system/ap-loader.js" async></script>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <a href="../" class="back-link">&lt; Назад в хаб</a>
+            <h1>Cybersteps // Engine v1.0</h1>
+            <div class="subtitle">Быстрый расчет шагов двигателя (Steps/mm) и лимитов вращения</div>
+        </header>
+
+        <div class="calc-grid">
+            <section class="calculator-inputs">
+                <!-- Вкладки выбора типа привода -->
+                <div class="tabs-container">
+                    <button id="tab-belt" class="tab-btn active" onclick="switchTab('belt')">Ремень (X/Y)</button>
+                    <button id="tab-screw" class="tab-btn" onclick="switchTab('screw')">Винт (Z)</button>
+                </div>
+
+                <div class="input-group">
+                    <label for="step-angle">Угол шага двигателя</label>
+                    <select id="step-angle" onchange="calculate()">
+                        <option value="1.8">1.8° (200 шагов — стандарт)</option>
+                        <option value="0.9">0.9° (400 шагов — точный)</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="microsteps">Микрошаг драйвера</label>
+                    <select id="microsteps" onchange="calculate()">
+                        <option value="16">1/16 (Стандарт A4988 / TMC)</option>
+                        <option value="32">1/32 (Драйвер DRV8825)</option>
+                        <option value="64">1/64</option>
+                        <option value="128">1/128</option>
+                        <option value="256">1/256 (Макс. тишина)</option>
+                        <option value="8">1/8</option>
+                        <option value="4">1/4</option>
+                        <option value="2">1/2</option>
+                        <option value="1">1/1 (Полный шаг)</option>
+                    </select>
+                </div>
+
+                <!-- Поля для ременного привода -->
+                <div class="input-group belt-field">
+                    <label for="belt-pitch">Шаг зубьев ремня</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="belt-pitch" value="2.0" min="0.1" step="0.1" oninput="calculate()">
+                        <span class="unit">мм</span>
+                    </div>
+                </div>
+
+                <div class="input-group belt-field">
+                    <label for="pulley-teeth">Зубья шкива (пуллея)</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="pulley-teeth" value="20" min="1" oninput="calculate()">
+                        <span class="unit">зуб</span>
+                    </div>
+                </div>
+
+                <!-- Поля для винтового привода -->
+                <div class="input-group screw-field hidden-field full-width">
+                    <label for="screw-lead">Ход резьбы за оборот (Lead)</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="screw-lead" value="8" min="0.1" step="0.1" oninput="calculate()">
+                        <span class="unit">мм</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="results-panel">
+                <div>
+                    <div class="result-title">Значение Steps/mm</div>
+                    <div class="total-price" id="result-value">80.00</div>
+                </div>
+
+                <div class="breakdown">
+                    <div class="breakdown-item">
+                        <span class="breakdown-label">Для прошивки Marlin:</span>
+                        <span class="breakdown-value">
+                            <span id="marlin-command" style="color: var(--neon-pink)">M92 X80.00</span>
+                            <button class="copy-cmd-btn" onclick="copyText('marlin-command')">Copy</button>
+                        </span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="breakdown-label">Klipper rotation_distance:</span>
+                        <span class="breakdown-value">
+                            <span id="klipper-rotation" style="color: var(--neon-cyan)">40.00</span>
+                            <button class="copy-cmd-btn" onclick="copyText('klipper-rotation')">Copy</button>
+                        </span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="breakdown-label">Физических шагов на оборот:</span>
+                        <span class="breakdown-value" id="physical-steps">200</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="breakdown-label">Микрошагов на один оборот:</span>
+                        <span class="breakdown-value" id="total-microsteps">3200</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <article class="seo-section">
+            <h2>Зачем калибровать шаги двигателя и как это работает</h2>
+            <p>Шаговый двигатель 3D-принтера не умеет свободно вращаться, как обычный моторчик в игрушечной машинке. Вместо этого он совершает крошечные дискретные повороты фиксированной величины — шаги. Стандартный шаговик NEMA 17 совершает ровно 200 физических шагов за один полный оборот вокруг своей оси.</p>
+            <p>Чтобы плата управления принтера понимала, сколько сигналов «сделать шаг» ей нужно отправить на мотор для движения каретки ровно на 1 миллиметр, используется параметр <strong>Steps/mm (шаги на миллиметр)</strong>. Если это значение указано неверно, принтер начнет печатать детали искаженных размеров, а кинематика роботов будет критически ошибаться при перемещении.</p>
+
+            <h3>Как это работает простыми словами</h3>
+            <p>Представьте, что управляющая плата — это штурман, прокладывающий путь по карте. Она не знает, какое расстояние проедет принтер за один шаг, но знает параметры ремней и моторов. Калькулятор сводит эти данные воедино:</p>
+            <div class="formula-box">
+                Шаги на мм = <span class="math">(Шаги на оборот × Микрошаг) ÷ Расстояние за один оборот</span>
+            </div>
+            <p>Давайте подробно разберем, из чего складывается этот расчет:</p>
+            <ul>
+                <li><strong>Шаги на оборот</strong> — базовая точность вашего мотора. Двигатели с углом 1.8° делают 200 шагов за круг, а моторы с углом 0.9° — 400 шагов.</li>
+                <li><strong>Микрошаг</strong> — технология дробления одного физического шага драйвером (например, TMC2209) на 16 или 32 мелких электронных микрошага для плавной и бесшумной работы.</li>
+                <li><strong>Расстояние за один оборот</strong> — это путь в миллиметрах, который физически преодолевает каретка за один прокрут мотора. Для ремня он зависит от количества зубьев шкива, а для оси Z — от шага резьбы ходового винта.</li>
+            </ul>
+
+            <h2>Популярные готовые конфигурации для быстрой настройки</h2>
+            <p>Если вы собираете свой принтер или восстанавливаете прошивку после сброса, воспользуйтесь таблицей стандартных значений для классических конфигураций железа:</p>
+            
+            <div class="seo-table-wrapper">
+                <table class="seo-table">
+                    <thead>
+                        <tr>
+                            <th>Кинематический узел</th>
+                            <th>Стандартное железо</th>
+                            <th>Микрошаг</th>
+                            <th>Базовые шаги (Steps/mm)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Ось X / Y (Ремень)</strong></td>
+                            <td>Ремень GT2 (шаг 2 мм), шкив на 20 зубьев</td>
+                            <td>1/16 (Стандарт)</td>
+                            <td><strong>80.00 steps/mm</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Ось X / Y (Ремень)</strong></td>
+                            <td>Ремень GT2 (шаг 2 мм), шкив на 16 зубьев</td>
+                            <td>1/16 (Увеличенная тяга)</td>
+                            <td><strong>100.00 steps/mm</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Ось Z (Ходовой винт)</strong></td>
+                            <td>Винт T8 со свинцовым ходом 8 мм за оборот</td>
+                            <td>1/16 (Ender 3 и др.)</td>
+                            <td><strong>400.00 steps/mm</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Ось Z (Ходовой винт)</strong></td>
+                            <td>Винт T8 со свинцовым ходом 2 мм за оборот</td>
+                            <td>1/16 (Точный шаг)</td>
+                            <td><strong>1600.00 steps/mm</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Практические советы по устранению геометрических ошибок</h2>
+            <p>Даже при идеально рассчитанных шагах детали иногда выходят чуть меньше или больше положенного. Вот как добиться превосходной геометрической точности:</p>
+            <ul>
+                <li><strong>Учитывайте усадку материала:</strong> Пластики вроде ABS, Nylon или даже PETG сжимаются при остывании. Если готовая деталь меньше чертежа на 0.5–1%, дело не в шагах мотора, а в температурной усадке пластика в слайсере.</li>
+                <li><strong>Избегайте переэкструзии (Overextrusion):</strong> Если сопло выдавливает слишком много пластика, стенки модели будут толще, и деталь «раздуется». Отрегулируйте поток (Flow / Extrusion Multiplier) в слайсере перед тонкой калибровкой осей.</li>
+                <li><strong>Проверяйте натяжение ремней:</strong> Прослабленные ремни вызывают люфт и скругляют углы при резкой смене направления движения, что визуально портит размеры.</li>
+            </ul>
+
+            <h2>Часто задаваемые вопросы (FAQ)</h2>
+            <div class="faq-container">
+                <details class="faq-item">
+                    <summary>Напечатал кубик, размеры не сходятся. Как скорректировать шаги?</summary>
+                    <div class="faq-content">
+                        Если размеры уплыли, можно скорректировать шаги по простой формуле: 
+                        <br><br>
+                        <strong>Новые шаги = (Заданный размер × Текущие шаги) ÷ Реальный размер</strong>
+                        <br><br>
+                        Например: вы печатали кубик 20 мм с шагами 80.00, а получили 19.8 мм. Новое значение составит: (20 × 80) ÷ 19.8 = 80.81 steps/mm.
+                    </div>
+                </details>
+                <details class="faq-item">
+                    <summary>Что такое rotation_distance в Klipper и как его использовать?</summary>
+                    <div class="faq-content">
+                        Klipper отказался от классических steps/mm. Вместо этого он настраивается через <code>rotation_distance</code> — это расстояние в миллиметрах, которое ось проходит за один полный оборот мотора. Калькулятор выводит это число отдельно. Просто укажите его в блоке вашей оси в файле <code>printer.cfg</code>.
+                    </div>
+                </details>
+                <details class="faq-item">
+                    <summary>Какой микрошаг лучше всего выбрать на драйвере?</summary>
+                    <div class="faq-content">
+                        Для 8-битных плат идеальным выбором остается микрошаг 1/16. На 32-битных современных платах можно смело выставлять 1/32 или 1/64. Выставлять микрошаг 1/256 без крайней необходимости не стоит — это создает колоссальную нагрузку на процессор платы управления, но не дает практически никакого прироста в реальной точности печати.
+                    </div>
+                </details>
+            </div>
+        </article>
+    </div>
+
+    <footer>
+        &copy; 2026 CYBERSTEPS // ENGINE. КАЛИБРОВКА И РАСЧЕТ ШАГОВ ШАГОВОГО ДВИГАТЕЛЯ.
+    </footer>
+
+    <script>
+        let currentTab = 'belt';
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.getElementById('tab-belt').classList.toggle('active', tab === 'belt');
+            document.getElementById('tab-screw').classList.toggle('active', tab === 'screw');
+            
+            const beltFields = document.querySelectorAll('.belt-field');
+            const screwFields = document.querySelectorAll('.screw-field');
+
+            if (tab === 'belt') {
+                beltFields.forEach(f => f.classList.remove('hidden-field'));
+                screwFields.forEach(f => f.classList.add('hidden-field'));
+            } else {
+                beltFields.forEach(f => f.classList.add('hidden-field'));
+                screwFields.forEach(f => f.classList.remove('hidden-field'));
+            }
+            
+            calculate();
+        }
+
+        function calculate() {
+            const stepAngle = parseFloat(document.getElementById('step-angle').value) || 1.8;
+            const microsteps = parseInt(document.getElementById('microsteps').value) || 16;
+            const stepsPerRev = 360 / stepAngle;
+
+            let stepsPerMm = 0;
+            let rotationDistance = 0;
+
+            if (currentTab === 'belt') {
+                const pitch = parseFloat(document.getElementById('belt-pitch').value) || 2;
+                const teeth = parseFloat(document.getElementById('pulley-teeth').value) || 20;
+                
+                rotationDistance = pitch * teeth;
+                stepsPerMm = (stepsPerRev * microsteps) / rotationDistance;
+            } else {
+                const lead = parseFloat(document.getElementById('screw-lead').value) || 8;
+                
+                rotationDistance = lead;
+                stepsPerMm = (stepsPerRev * microsteps) / rotationDistance;
+            }
+
+            document.getElementById('result-value').textContent = stepsPerMm.toFixed(2);
+            document.getElementById('klipper-rotation').textContent = rotationDistance.toFixed(2);
+            document.getElementById('marlin-command').textContent = `M92 ${currentTab === 'belt' ? 'X' : 'Z'}${stepsPerMm.toFixed(2)}`;
+            document.getElementById('physical-steps').textContent = stepsPerRev.toFixed(0);
+            document.getElementById('total-microsteps').textContent = (stepsPerRev * microsteps).toFixed(0);
+        }
+
+        function copyText(elementId) {
+            const text = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.querySelector(`#${elementId} + .copy-cmd-btn`);
+                const oldText = btn.innerText;
+                btn.innerText = 'Copied!';
+                setTimeout(() => { btn.innerText = oldText; }, 1500);
+            });
+        }
+
+        window.onload = calculate;
+    </script>
+</body>
+</html>
