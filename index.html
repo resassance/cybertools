@@ -3,104 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Cybertools — коллекция бесплатных, простых и быстрых онлайн-инструментов для работы, хобби и повседневных расчетов. Полностью без рекламы и регистрации.">
-    <title>Cybertools // Бесплатные онлайн-калькуляторы и утилиты</title>
+    <title>Cyberhub — Инженерно-творческая лаборатория</title>
+    <meta name="description" content="Интерактивные инструменты для мейкеров, инженеров, разработчиков и музыкантов.">
+    <link rel="stylesheet" href="css/global.css">
     <style>
-        :root {
-            --bg-base: #06070a;
-            --bg-panel: #0d0e12;
-            --border: #1e222d;
-            --neon-cyan: #00f3ff;
-            --neon-pink: #ff0055;
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --shadow-cyan: rgba(0, 243, 255, 0.15);
-        }
-        body {
-            background-color: var(--bg-base);
-            color: var(--text-primary);
-            font-family: system-ui, -apple-system, sans-serif;
-            min-height: 100vh;
+        .hub-grid {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            box-sizing: border-box;
+            gap: 40px;
+            margin-top: 24px;
         }
-        .hub-container {
-            width: 100%;
-            max-width: 600px;
-            text-align: center;
-        }
-        h1 {
-            font-size: 2rem;
-            text-transform: uppercase;
-            letter-spacing: 4px;
+
+        .category-section h2 {
             color: var(--neon-cyan);
-            text-shadow: 0 0 12px var(--shadow-cyan);
-            margin-bottom: 8px;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            border-left: 3px solid var(--neon-pink);
+            padding-left: 12px;
+            text-shadow: 0 0 10px var(--shadow-cyan);
         }
-        .subtitle {
-            color: var(--text-secondary);
-            font-family: monospace;
-            font-size: 0.9rem;
-            margin-bottom: 40px;
-        }
-        .grid {
+
+        .tools-list {
             display: grid;
-            grid-template-columns: 1fr;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 20px;
         }
-        .card {
-            background: var(--bg-panel);
+
+        .tool-card {
+            background-color: var(--bg-input);
             border: 1px solid var(--border);
-            border-radius: 12px;
+            border-radius: 14px;
             padding: 24px;
             text-decoration: none;
-            color: inherit;
-            text-align: left;
-            transition: all 0.2s ease;
-            display: block;
-        }
-        .card:hover {
-            border-color: var(--neon-pink);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 0, 85, 0.1);
-        }
-        .card-title {
-            font-size: 1.2rem;
-            font-weight: bold;
             color: var(--text-primary);
-            margin-bottom: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
         }
-        .card-desc {
+
+        .tool-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background-color: var(--text-muted);
+            transition: all 0.3s ease;
+        }
+
+        .tool-card:hover {
+            border-color: var(--border-focus);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .tool-card:hover::before {
+            background-color: var(--neon-cyan);
+            box-shadow: 0 0 10px var(--neon-cyan);
+        }
+
+        .category-section.creative h2 {
+            color: var(--neon-pink);
+            text-shadow: 0 0 10px var(--shadow-pink);
+            border-left-color: var(--neon-cyan);
+        }
+        .category-section.creative .tool-card:hover::before {
+            background-color: var(--neon-pink);
+            box-shadow: 0 0 10px var(--neon-pink);
+        }
+        .category-section.creative .tool-card:hover {
+            border-color: var(--neon-pink);
+            box-shadow: 0 0 20px rgba(255, 0, 85, 0.15);
+        }
+
+        .tool-name {
+            font-size: 1.1rem;
+            font-weight: 800;
+            font-family: monospace;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .tool-desc {
+            font-size: 0.85rem;
             color: var(--text-secondary);
-            font-size: 0.9rem;
-            line-height: 1.4;
+            line-height: 1.5;
+        }
+
+        .tool-tag {
+            align-self: flex-start;
+            font-family: monospace;
+            font-size: 0.65rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            margin-top: 16px;
         }
     </style>
-    <!-- Yandex Autoplacement 19597235 -->
-    <script src="https://yandex.ru/ads/system/context.js" async></script>
-    <script data-page-id="19597235" src="https://yandex.ru/ads/system/ap-loader.js" async></script>
 </head>
 <body>
-    <div class="hub-container">
-        <h1>Cybertools // Hub</h1>
-        <div class="subtitle">[ Экосистема веб-утилит и калькуляторов ]</div>
-        
-        <div class="grid">
-            <!-- Твой первый инструмент -->
-            <a href="3d-calculator/index.html" class="card">
-                <div class="card-title">Cyberprint // Engine v1.2</div>
-                <div class="card-desc">Точный и быстрый расчет себестоимости 3D-печати с учетом пластика, энергии и амортизации.</div>
-            </a>
-            
-            <a href="steps-calculator/" class="card">
-                <div class="card-title">Cybersteps // Engine v1.0</div>
-                <div class="card-desc">Калькулятор шагов для ремней и ходовых винтов. Рассчитай точные параметры для прошивки Marlin или Klipper.</div>
-            </a>
-        </div>
+
+    <div class="container">
+        <header>
+            <h1>Cyberhub // Main</h1>
+            <div class="subtitle">Интерактивный арсенал инструментов мейкера</div>
+        </header>
+
+        <main class="hub-grid">
+            <section class="category-section">
+                <h2>[ 01 // КИНЕМАТИКА И ПЕЧАТЬ ]</h2>
+                <div class="tools-list">
+                    <a href="steps-calculator/index.html" class="tool-card">
+                        <div>
+                            <div class="tool-name" style="color: var(--neon-cyan)">Cybersteps // Engine</div>
+                            <div class="tool-desc">Расчет шагов шагового двигателя (Steps/mm) для ремней и ходовых винтов 3D-принтеров.</div>
+                        </div>
+                        <div class="tool-tag">Marlin & Klipper</div>
+                    </a>
+
+                    <a href="3d-calculator/index.html" class="tool-card">
+                        <div>
+                            <div class="tool-name" style="color: var(--neon-cyan)">Cyberprint // Engine</div>
+                            <div class="tool-desc">Точный расчет чистой себестоимости 3D-печати с учетом износа, пластика и энергии.</div>
+                        </div>
+                        <div class="tool-tag">FDM / SLA cost</div>
+                    </a>
+                </div>
+            </section>
+
+            <section class="category-section creative">
+                <h2>[ 02 // МУЗЫКА И ТВОРЧЕСТВО ]</h2>
+                <div class="tools-list">
+                    <a href="chord-visualizer/index.html" class="tool-card">
+                        <div>
+                            <div class="tool-name" style="color: var(--neon-pink)">Cyberchord // Fret</div>
+                            <div class="tool-desc">Минималистичный интерактивный справочник гитарных аккордов с неоновой визуализацией и звуком.</div>
+                        </div>
+                        <div class="tool-tag">Guitar Synth</div>
+                    </a>
+                </div>
+            </section>
+        </main>
     </div>
+
+    <footer>
+        &copy; 2026 CYBERHUB // LABORATORY. ВСЕ ПРАВА ЗАЩИЩЕНЫ.
+    </footer>
+
 </body>
 </html>

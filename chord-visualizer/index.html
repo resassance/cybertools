@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyberchord // Fret — Интерактивный справочник гитарных аккордов</title>
+    <meta name="description" content="Интерактивный неоновый визуализатор гитарных аккордов со звуковым синтезатором. Удобная аппликатура для начинающих гитаристов.">
+    <link rel="stylesheet" href="../css/global.css">
+    
+    <style>
+        .calc-grid {
+            display: grid;
+            grid-template-columns: 0.9fr 1.1fr;
+            gap: 32px;
+            margin-bottom: 48px;
+        }
+
+        @media (max-width: 850px) {
+            .calc-grid {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+        }
+
+        .chord-control {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .chord-selector {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .chord-btn {
+            background-color: var(--bg-input);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            font-family: monospace;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .chord-btn:hover {
+            border-color: var(--neon-pink);
+            color: var(--text-primary);
+        }
+
+        .chord-btn.active {
+            border-color: var(--neon-pink);
+            color: var(--text-primary);
+            box-shadow: 0 0 14px var(--shadow-pink);
+        }
+
+        .chord-info-card {
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px dashed var(--border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .chord-name-large {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: var(--neon-pink);
+            text-shadow: 0 0 15px var(--shadow-pink);
+            font-family: monospace;
+            margin-bottom: 8px;
+        }
+
+        .chord-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .strum-btn {
+            background: transparent;
+            border: 1px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            padding: 14px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.05);
+        }
+
+        .strum-btn:hover {
+            background: rgba(0, 243, 255, 0.05);
+            box-shadow: 0 0 15px var(--shadow-cyan);
+        }
+
+        .fretboard-container {
+            background-color: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 28px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .fretboard-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background-color: var(--neon-cyan);
+            box-shadow: 0 0 12px var(--neon-cyan);
+        }
+
+        svg {
+            max-width: 280px;
+            height: auto;
+        }
+
+        .fret-line {
+            stroke: var(--text-muted);
+            stroke-width: 2px;
+        }
+        .string-line {
+            stroke: var(--text-muted);
+            stroke-linecap: round;
+        }
+        .nut-line {
+            stroke: var(--text-primary);
+            stroke-width: 6px;
+        }
+        .finger-marker {
+            fill: var(--neon-pink);
+            filter: drop-shadow(0px 0px 6px var(--neon-pink));
+        }
+        .finger-text {
+            fill: var(--text-primary);
+            font-size: 11px;
+            font-family: monospace;
+            font-weight: bold;
+            text-anchor: middle;
+            dominant-baseline: central;
+        }
+        .open-mute-text {
+            fill: var(--text-secondary);
+            font-size: 12px;
+            font-family: monospace;
+            font-weight: bold;
+            text-anchor: middle;
+        }
+        .open-mute-text.active-open {
+            fill: var(--neon-cyan);
+            filter: drop-shadow(0px 0px 4px var(--neon-cyan));
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <a href="../index.html" class="back-link">&lt; Назад в хаб</a>
+            <h1>Cyberchord // Fret v1.0</h1>
+            <div class="subtitle">Интерактивный справочник гитарных аккордов со звуковым синтезом</div>
+        </header>
+
+        <div class="calc-grid">
+            <section class="chord-control">
+                <div class="chord-selector">
+                    <button class="chord-btn active" onclick="selectChord('Am')">Am</button>
+                    <button class="chord-btn" onclick="selectChord('C')">C</button>
+                    <button class="chord-btn" onclick="selectChord('G')">G</button>
+                    <button class="chord-btn" onclick="selectChord('D')">D</button>
+                    <button class="chord-btn" onclick="selectChord('Em')">Em</button>
+                    <button class="chord-btn" onclick="selectChord('E')">E</button>
+                    <button class="chord-btn" onclick="selectChord('Dm')">Dm</button>
+                    <button class="chord-btn" onclick="selectChord('F')">F (easy)</button>
+                </div>
+
+                <div class="chord-info-card">
+                    <div class="chord-name-large" id="chord-title">Am</div>
+                    <p class="chord-desc" id="chord-desc">Ля-минор. Один из первых аккордов, с которого начинают свой путь все гитаристы. Обладает глубоким меланхоличным звучанием.</p>
+                    <button class="strum-btn" onclick="strumActiveChord()">Струнить аккорд ♪</button>
+                </div>
+            </section>
+
+            <section class="fretboard-container">
+                <svg viewBox="0 0 240 320" width="100%" height="100%">
+                    <rect x="20" y="40" width="200" height="250" fill="rgba(18, 20, 28, 0.7)" rx="4" stroke="var(--border)" stroke-width="2" />
+                    
+                    <line x1="20" y1="40" x2="220" y2="40" class="nut-line" />
+                    
+                    <line x1="20" y1="90" x2="220" y2="90" class="fret-line" />
+                    <line x1="20" y1="140" x2="220" y2="140" class="fret-line" />
+                    <line x1="20" y1="190" x2="220" y2="190" class="fret-line" />
+                    <line x1="20" y1="240" x2="220" y2="240" class="fret-line" />
+                    <line x1="20" y1="290" x2="220" y2="290" class="fret-line" />
+
+                    <circle cx="120" cy="165" r="4" fill="var(--text-muted)" opacity="0.6" />
+                    <circle cx="120" cy="265" r="4" fill="var(--text-muted)" opacity="0.6" />
+                    
+                    <line x1="20" y1="40" x2="20" y2="290" class="string-line" stroke-width="3" />
+                    <line x1="60" y1="40" x2="60" y2="290" class="string-line" stroke-width="2.5" />
+                    <line x1="100" y1="40" x2="100" y2="290" class="string-line" stroke-width="2" />
+                    <line x1="140" y1="40" x2="140" y2="290" class="string-line" stroke-width="1.5" />
+                    <line x1="180" y1="40" x2="180" y2="290" class="string-line" stroke-width="1.2" />
+                    <line x1="220" y1="40" x2="220" y2="290" class="string-line" stroke-width="0.8" />
+
+                    <text x="20" y="310" class="finger-text" style="fill: var(--text-muted)">E</text>
+                    <text x="60" y="310" class="finger-text" style="fill: var(--text-muted)">A</text>
+                    <text x="100" y="310" class="finger-text" style="fill: var(--text-muted)">D</text>
+                    <text x="140" y="310" class="finger-text" style="fill: var(--text-muted)">G</text>
+                    <text x="180" y="310" class="finger-text" style="fill: var(--text-muted)">B</text>
+                    <text x="220" y="310" class="finger-text" style="fill: var(--text-muted)">e</text>
+                    
+                    <g id="markers-group"></g>
+                    <g id="dots-group"></g>
+                </svg>
+            </section>
+        </div>
+
+        <article class="seo-section">
+            <h2>Как правильно зажимать аккорды: советы для новичков</h2>
+            <p>Когда вы только начинаете играть на гитаре, пальцы могут не слушаться, а струны — предательски дребезжать. Это абсолютно нормально, через этот этап проходят все без исключения. Чтобы ускорить прогресс и избежать ошибок, соблюдайте базовые правила постановки рук:</p>
+            <ul>
+                <li><strong>Прижимайте струну ближе к ладовому порожку:</strong> Ставьте палец не посередине лада, а чуть смещая его к металлической перегородке (порожку) справа. Так вам понадобится прикладывать гораздо меньше усилий для чистого извлечения звука.</li>
+                <li><strong>Держите пальцы полукругом («куполом»):</strong> Они не должны плашмя ложиться на соседние струны и глушить их. Каждый палец должен касаться грифа строго перпендикулярно, кончиком подушечки.</li>
+                <li><strong>Следите за большим пальцем:</strong> Он должен упираться в заднюю часть грифа примерно посередине, помогая создавать рычаг, а не торчать далеко сверху.</li>
+            </ul>
+
+            <h2>Что означают символы O и X над грифом?</h2>
+            <p>На наших интерактивных аппликатурах вы заметите специальные символы над струнами:</p>
+            <ul>
+                <li><strong>Символ O (Open):</strong> Означает, что струна должна звучать открытой, зажимать ее на грифе пальцами не требуется.</li>
+                <li><strong>Символ X (Muted):</strong> Означает, что струна не должна звучать в этом аккорде. Её нужно либо аккуратно приглушить (например, касанием ребра большого пальца), либо просто не задевать медиатором при ударе.</li>
+            </ul>
+        </article>
+    </div>
+
+    <footer>
+        &copy; 2026 CYBERCHORD // FRET. СТИЛЬНЫЙ СИНТЕЗАТОР И СПРАВОЧНИК АККОРДОВ.
+    </footer>
+
+    <script>
+        const chordDB = {
+            'Am': {
+                name: 'Am (Ля-минор)',
+                frets: ['X', 0, 2, 2, 1, 0],
+                fingers: [null, null, 2, 3, 1, null],
+                desc: 'Один из первых и самых популярных минорных аккордов. Звучит глубоко, лирично и меланхолично. Базовая основа сотен известных песен.'
+            },
+            'C': {
+                name: 'C (До-мажор)',
+                frets: ['X', 3, 2, 0, 1, 0],
+                fingers: [null, 3, 2, null, 1, null],
+                desc: 'Светлый, устойчивый мажорный аккорд. Вместе с Am образует классическое гармоническое сочетание. Требует хорошей растяжки для 3-го пальца.'
+            },
+            'G': {
+                name: 'G (Соль-мажор)',
+                frets: [3, 2, 0, 0, 0, 3],
+                fingers: [2, 1, null, null, null, 3],
+                desc: 'Бодрый, яркий и открытый аккорд. Популярен в акустической музыке, фолке и роке. Важно плотно зажимать крайние струны.'
+            },
+            'D': {
+                name: 'D (Ре-мажор)',
+                frets: ['X', 'X', 0, 2, 3, 2],
+                fingers: [null, null, null, 1, 3, 2],
+                desc: 'Звонкий мажорный аккорд, строящийся от четвертой открытой струны. Придает композициям триумфальный и энергичный характер.'
+            },
+            'Em': {
+                name: 'Em (Ми-минор)',
+                frets: [0, 2, 2, 0, 0, 0],
+                fingers: [null, 1, 2, null, null, null],
+                desc: 'Самый простой аккорд на гитаре — зажимается всего двумя пальцами. Имеет тяжелое, мрачное и мощное басовое звучание.'
+            },
+            'E': {
+                name: 'E (Ми-мажор)',
+                frets: [0, 2, 2, 1, 0, 0],
+                fingers: [null, 2, 3, 1, null, null],
+                desc: 'Энергичный мажорный аккорд. Основа блюзовых квадратов и испанских мотивов. Добавление всего одного пальца превращает его из Em в мажор.'
+            },
+            'Dm': {
+                name: 'Dm (Ре-минор)',
+                frets: ['X', 'X', 0, 2, 3, 1],
+                fingers: [null, null, null, 2, 3, 1],
+                desc: 'Мягкий и печальный аккорд, часто используемый в лирических балладах. Обращайте внимание, чтобы первые две струны не глушились рукой.'
+            },
+            'F': {
+                name: 'F (Фа-мажор, упрощенный)',
+                frets: ['X', 'X', 3, 2, 1, 1],
+                fingers: [null, null, 3, 2, 1, 1],
+                desc: 'Упрощенная версия сложного аккорда F (без полного баррэ). Первым пальцем нужно зажать сразу две струны (1-ю и 2-ю) на первом ладу.'
+            }
+        };
+
+        let activeChord = 'Am';
+
+        const stringBaseFreqs = [82.41, 110.00, 146.83, 196.00, 246.94, 329.63];
+
+        const stringX = [20, 60, 100, 140, 180, 220];
+        const fretY = [0, 65, 115, 165, 215, 265];
+
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function drawChord(chordKey) {
+            const chord = chordDB[chordKey];
+            const markersGroup = document.getElementById('markers-group');
+            const dotsGroup = document.getElementById('dots-group');
+            
+            markersGroup.innerHTML = '';
+            dotsGroup.innerHTML = '';
+
+            for (let s = 0; s < 6; s++) {
+                const val = chord.frets[s];
+                const x = stringX[s];
+
+                if (val === 'X') {
+                    markersGroup.innerHTML += `
+                        <text x="${x}" y="28" class="open-mute-text">X</text>
+                    `;
+                } else if (val === 0) {
+                    markersGroup.innerHTML += `
+                        <text x="${x}" y="28" class="open-mute-text active-open">O</text>
+                    `;
+                } else {
+                    const y = fretY[val];
+                    const finger = chord.fingers[s];
+                    
+                    dotsGroup.innerHTML += `
+                        <circle cx="${x}" cy="${y}" r="12" class="finger-marker" />
+                        <text x="${x}" y="${y}" class="finger-text">${finger ? finger : ''}</text>
+                    `;
+                }
+            }
+        }
+
+        function selectChord(chordKey) {
+            activeChord = chordKey;
+            
+            document.querySelectorAll('.chord-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent.replace(' (easy)', '') === chordKey);
+            });
+
+            document.getElementById('chord-title').textContent = chordDB[chordKey].name;
+            document.getElementById('chord-desc').textContent = chordDB[chordKey].desc;
+
+            drawChord(chordKey);
+            
+            strumActiveChord();
+        }
+
+        function strumActiveChord() {
+            initAudio();
+            const chord = chordDB[activeChord];
+            
+            chord.frets.forEach((fret, stringIdx) => {
+                if (fret === 'X') return;
+                
+                const freq = stringBaseFreqs[stringIdx] * Math.pow(2, fret / 12);
+                
+                const delay = stringIdx * 0.06;
+                playPluck(freq, delay);
+            });
+        }
+
+        function playPluck(freq, delay) {
+            const osc = audioCtx.createOscillator();
+            const filter = audioCtx.createBiquadFilter();
+            const gain = audioCtx.createGain();
+
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime + delay);
+
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(1200, audioCtx.currentTime + delay);
+            filter.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + delay + 1.2);
+
+            gain.gain.setValueAtTime(0, audioCtx.currentTime + delay);
+            gain.gain.linearRampToValueAtTime(0.25, audioCtx.currentTime + delay + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + delay + 1.6);
+
+            osc.connect(filter);
+            filter.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.start(audioCtx.currentTime + delay);
+            osc.stop(audioCtx.currentTime + delay + 1.8);
+        }
+
+        window.onload = () => {
+            drawChord(activeChord);
+        };
+    </script>
+</body>
+</html>
