@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="../css/global.css">
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
     
-    <!-- Настройка и подключение MathJax для красивого рендеринга формул -->
     <script>
         window.MathJax = {
             tex: {
@@ -91,7 +90,6 @@
             </section>
         </div>
 
-        <!-- Раздел: Математическое описание -->
         <article class="seo-section">
             <h2>Как это работает: Математика Обратной Кинематики</h2>
             <p>В робототехнике существует два типа задач кинематики:</p>
@@ -115,7 +113,6 @@
             <p>Если точка $(x, y)$ находится дальше, чем сумма длин звеньев ($L_1 + L_2$), то система не имеет решений — цель находится вне зоны досягаемости манипулятора. В этом случае алгоритм автоматически масштабирует вектор цели до максимального радиуса действия руки.</p>
         </article>
 
-        <!-- Раздел: Интерактивный FAQ -->
         <section class="faq-section">
             <h2>[ 03 // ЧАСТО ЗАДАВАЕМЫЕ ВОПРОСЫ ]</h2>
             <div class="faq-container">
@@ -192,13 +189,11 @@
 
         let isDragging = false;
 
-        // Логика FAQ-аккордеона
         document.querySelectorAll('.faq-trigger').forEach(trigger => {
             trigger.addEventListener('click', () => {
                 const item = trigger.parentNode;
                 const isActive = item.classList.contains('active');
                 
-                // Закрываем все открытые вкладки (если нужно поведение "только одна открытая вкладка")
                 document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
                 
                 if (!isActive) {

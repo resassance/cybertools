@@ -156,9 +156,6 @@ footer {
     flex-direction: column;
 }
 
-/* ==========================================
-   ГЛАВНАЯ СТРАНИЦА (index.html)
-   ========================================== */
 .hub-grid {
     display: flex;
     flex-direction: column;
@@ -274,9 +271,6 @@ footer {
     margin-top: 16px;
 }
 
-/* ==========================================
-   ОБЩАЯ ШАПКА И ЛОГОТИП
-   ========================================== */
 .header-body {
     display: flex;
     align-items: center;
@@ -302,9 +296,6 @@ footer {
     flex-direction: column;
 }
 
-/* ==========================================
-   CYBERCHORD // FRET
-   ========================================== */
 .calc-grid {
     display: grid;
     grid-template-columns: 0.9fr 1.1fr;
@@ -480,9 +471,6 @@ footer {
     filter: drop-shadow(0px 0px 4px var(--neon-cyan));
 }
 
-/* ==========================================
-   CYBERARM // KINEMATICS
-   ========================================== */
 .simulator-container {
     background-color: var(--bg-input);
     border: 1px solid var(--border);
@@ -657,9 +645,6 @@ input[type=range] {
     margin-top: 10px;
 }
 
-/* ==========================================
-   ТИПОГРАФИКА И СТАТЬИ
-   ========================================== */
 .seo-section {
     margin-top: 48px;
     padding-top: 32px;
@@ -697,7 +682,6 @@ input[type=range] {
     color: var(--text-primary);
 }
 
-/* Стилизация блоков с формулами */
 .math-block {
     background: rgba(255, 255, 255, 0.01);
     border: 1px solid var(--border);
@@ -708,9 +692,6 @@ input[type=range] {
     text-align: center;
 }
 
-/* ==========================================
-   ИНТЕРАКТИВНЫЙ FAQ (АККОРДЕОН)
-   ========================================== */
 .faq-section {
     margin-top: 48px;
     margin-bottom: 64px;
@@ -766,7 +747,6 @@ input[type=range] {
     transition: transform 0.3s ease, color 0.3s ease;
 }
 
-/* Стили для открытого состояния */
 .faq-item.active {
     border-color: var(--neon-pink);
     box-shadow: 0 0 15px rgba(255, 0, 85, 0.05);
@@ -793,7 +773,7 @@ input[type=range] {
 }
 
 .faq-item.active .faq-content {
-    max-height: 1000px; /* Достаточная высота для контента */
+    max-height: 1000px;
     transition: max-height 0.3s cubic-bezier(1, 0, 1, 0);
     padding-bottom: 20px;
     border-top: 1px solid rgba(255, 255, 255, 0.03);
@@ -806,4 +786,259 @@ input[type=range] {
 
 .faq-content p:last-child {
     margin-bottom: 0;
+}
+
+.dice-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.dice-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+@media (max-width: 480px) {
+    .dice-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.dice-btn {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    color: var(--text-primary);
+    font-family: monospace;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.dice-btn::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: var(--neon-cyan);
+    transform: scaleX(0);
+    transition: transform 0.2s ease;
+}
+
+.dice-btn:hover {
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 12px rgba(0, 243, 255, 0.15);
+    transform: translateY(-1px);
+}
+
+.dice-btn:hover::after {
+    transform: scaleX(1);
+}
+
+.dice-btn.active-dice {
+    border-color: var(--neon-pink);
+    box-shadow: 0 0 14px var(--shadow-pink);
+    color: var(--neon-pink);
+}
+
+.dice-btn.active-dice::after {
+    transform: scaleX(1);
+    background: var(--neon-pink);
+}
+
+.roll-display-container {
+    background-color: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 240px;
+    position: relative;
+    overflow: hidden;
+}
+
+.roll-display-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background-color: var(--neon-pink);
+    box-shadow: 0 0 12px var(--neon-pink);
+}
+
+.roll-result {
+    font-size: 5.5rem;
+    font-weight: 900;
+    font-family: monospace;
+    color: var(--neon-pink);
+    text-shadow: 0 0 25px var(--shadow-pink);
+    line-height: 1;
+    margin-bottom: 12px;
+    transition: transform 0.1s ease;
+}
+
+.roll-result.rolling {
+    animation: shakeRoll 0.12s infinite;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 25px var(--shadow-cyan);
+}
+
+@keyframes shakeRoll {
+    0% { transform: translate(2px, 1px) rotate(0deg) scale(0.95); }
+    10% { transform: translate(-1px, -2px) rotate(-2deg); }
+    20% { transform: translate(-3px, 0px) rotate(2deg); }
+    30% { transform: translate(0px, 2px) rotate(0deg); }
+    40% { transform: translate(1px, -1px) rotate(2deg) scale(1.05); }
+    50% { transform: translate(-1px, 2px) rotate(-2deg); }
+    60% { transform: translate(-3px, 1px) rotate(0deg); }
+    70% { transform: translate(2px, 1px) rotate(-2deg); }
+    80% { transform: translate(-1px, -1px) rotate(2deg); }
+    90% { transform: translate(2px, 2px) rotate(0deg); }
+    100% { transform: translate(1px, -2px) rotate(-2deg) scale(0.95); }
+}
+
+.roll-meta {
+    font-family: monospace;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.modifier-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.modifier-box label {
+    font-family: monospace;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.modifier-input {
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: var(--text-primary);
+    font-family: monospace;
+    font-size: 0.9rem;
+    width: 70px;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.modifier-input:focus {
+    border-color: var(--neon-cyan);
+    outline: none;
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.1);
+}
+
+.history-box {
+    background: #090a0f;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    font-family: monospace;
+}
+
+.history-title {
+    font-size: 0.75rem;
+    color: var(--neon-cyan);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 6px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.clear-history-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+}
+
+.clear-history-btn:hover {
+    color: var(--neon-pink);
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 6px;
+    max-height: 120px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.history-item {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.02);
+}
+
+.history-item .hist-formula {
+    color: var(--text-muted);
+}
+
+.history-item .hist-total {
+    color: var(--neon-pink);
+    font-weight: bold;
+}
+
+.oracle-section {
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.oracle-section:hover {
+    border-color: var(--neon-pink);
+    background: rgba(255, 0, 85, 0.02);
+}
+
+.oracle-title {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-family: monospace;
+    margin-bottom: 6px;
+    letter-spacing: 1px;
+}
+
+.oracle-result {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--neon-cyan);
+    font-family: monospace;
+    text-shadow: 0 0 10px var(--shadow-cyan);
 }

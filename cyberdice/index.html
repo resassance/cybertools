@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyberdice // Fate — Интерактивный генератор случайности</title>
+    <meta name="description" content="Интерактивный неоновый дайс-роллер и оракул для настольных и текстовых ролевых игр.">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <a href="../index.html" class="back-link">&lt; Назад в хаб</a>
+            <div class="header-body">
+                <img src="../favicon.svg" class="header-logo" alt="Cyberhub Logo">
+                <div class="header-text">
+                    <h1>Cyberdice // Fate</h1>
+                    <div class="subtitle">Интерактивный дайс-роллер и оракул для настолок</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="calc-grid">
+            <section class="dice-panel">
+                <div class="dice-grid">
+                    <button class="dice-btn" onclick="rollDice(4)">d4</button>
+                    <button class="dice-btn" onclick="rollDice(6)">d6</button>
+                    <button class="dice-btn" onclick="rollDice(8)">d8</button>
+                    <button class="dice-btn" onclick="rollDice(10)">d10</button>
+                    <button class="dice-btn" onclick="rollDice(12)">d12</button>
+                    <button class="dice-btn active-dice" onclick="rollDice(20)">d20</button>
+                    <button class="dice-btn" onclick="rollDice(100)">d100</button>
+                    <button class="dice-btn" style="color: var(--neon-pink)" onclick="askOracle()">?</button>
+                </div>
+
+                <div class="modifier-box">
+                    <label for="modifier">Модификатор броска:</label>
+                    <input type="number" id="modifier" class="modifier-input" value="0" placeholder="+/-">
+                </div>
+
+                <div class="oracle-section" onclick="askOracle()">
+                    <div class="oracle-title">Оракул судьбы (Да/Нет)</div>
+                    <div class="oracle-result" id="oracle-val">КЛИКНИ ДЛЯ ОТВЕТА</div>
+                </div>
+
+                <div class="history-box">
+                    <div class="history-title">
+                        <span>Лог результатов</span>
+                        <button class="clear-history-btn" onclick="clearHistory()">Очистить</button>
+                    </div>
+                    <div class="history-list" id="history-log">
+                    </div>
+                </div>
+            </section>
+
+            <section class="roll-display-container" id="roll-container" onclick="triggerActiveRoll()">
+                <div class="roll-result" id="roll-value">20</div>
+                <div class="roll-meta" id="roll-meta-info">Нажми, чтобы бросить d20</div>
+            </section>
+        </div>
+
+        <article class="seo-section">
+            <h2>Как использовать Cyberdice // Fate в играх</h2>
+            <p>Этот инструмент разработан специально для ведущих и игроков настольных и текстовых ролевых игр (RPG). Он заменяет собой целую горсть физического пластика и экономит время на подсчетах.</p>
+            <ul>
+                <li><strong>Стандартные дайсы:</strong> Используйте d20 для проверок навыков и попадания атак, d6 и d8 — для расчета нанесенного урона, а d100 (процентник) — для случайных таблиц и проверок вероятности.</li>
+                <li><strong>Модификаторы:</strong> Задайте значение в поле модификатора перед броском. Оно автоматически прибавится или вычтется из результата на экране и отобразится в логе.</li>
+                <li><strong>Оракул Судьбы:</strong> Используйте кнопку <strong>"?"</strong> или блок Оракула для быстрого ведения соло-приключений или ответов на вопросы вроде: <i>"Удалось ли мне незаметно проскочить мимо охраны?"</i>. Ответы градируются по шкале успешности.</li>
+            </ul>
+        </article>
+    </div>
+
+    <footer>
+        &copy; 2026 CYBERDICE // FRET. СЛУЧАЙНОСТЬ ПОД НАШИМ КОНТРОЛЕМ.
+    </footer>
+
+    <script>
+        let currentSides = 20;
+        let isRolling = false;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playSciFiBeep(isFinal = false) {
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.type = 'sine';
+            
+            if (isFinal) {
+                osc.frequency.setValueAtTime(330, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(660, audioCtx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } else {
+                osc.frequency.setValueAtTime(150 + Math.random() * 300, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.05);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.06);
+            }
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+        }
+
+        function rollDice(sides) {
+            if (isRolling) return;
+
+            document.querySelectorAll('.dice-btn').forEach(btn => {
+                btn.classList.toggle('active-dice', btn.textContent === 'd' + sides);
+            });
+
+            currentSides = sides;
+            document.getElementById('roll-meta-info').textContent = `Нажми, чтобы бросить d${sides}`;
+            document.getElementById('roll-value').textContent = sides;
+            
+            triggerActiveRoll();
+        }
+
+        function triggerActiveRoll() {
+            if (isRolling) return;
+            isRolling = true;
+
+            const display = document.getElementById('roll-value');
+            display.classList.add('rolling');
+
+            const mod = parseInt(document.getElementById('modifier').value) || 0;
+            const duration = 600;
+            const intervalTime = 50;
+            let elapsed = 0;
+
+            const interval = setInterval(() => {
+                const tempVal = Math.floor(Math.random() * currentSides) + 1;
+                display.textContent = tempVal;
+                playSciFiBeep(false);
+                elapsed += intervalTime;
+
+                if (elapsed >= duration) {
+                    clearInterval(interval);
+                    
+                    const finalBase = Math.floor(Math.random() * currentSides) + 1;
+                    const finalTotal = finalBase + mod;
+                    
+                    display.textContent = finalTotal;
+                    display.classList.remove('rolling');
+                    playSciFiBeep(true);
+
+                    addHistoryItem(`d${currentSides}`, finalBase, mod, finalTotal);
+                    isRolling = false;
+                }
+            }, intervalTime);
+        }
+
+        function askOracle() {
+            if (isRolling) return;
+            isRolling = true;
+
+            document.querySelectorAll('.dice-btn').forEach(btn => {
+                btn.classList.toggle('active-dice', btn.textContent === '?');
+            });
+
+            const answers = [
+                { text: "ДА, И...", color: "var(--neon-cyan)" },
+                { text: "ДА", color: "var(--neon-cyan)" },
+                { text: "ДА, НО...", color: "#a7f3d0" },
+                { text: "НЕТ, НО...", color: "#fca5a5" },
+                { text: "НЕТ", color: "var(--neon-pink)" },
+                { text: "НЕТ, И...", color: "var(--neon-pink)" }
+            ];
+
+            const display = document.getElementById('roll-value');
+            const oracleVal = document.getElementById('oracle-val');
+            display.classList.add('rolling');
+            
+            let elapsed = 0;
+            const duration = 600;
+            const intervalTime = 60;
+
+            const interval = setInterval(() => {
+                const tempIndex = Math.floor(Math.random() * answers.length);
+                display.textContent = tempIndex + 1;
+                oracleVal.textContent = answers[tempIndex].text;
+                oracleVal.style.color = answers[tempIndex].color;
+                playSciFiBeep(false);
+                elapsed += intervalTime;
+
+                if (elapsed >= duration) {
+                    clearInterval(interval);
+                    
+                    const finalIndex = Math.floor(Math.random() * answers.length);
+                    const finalAnswer = answers[finalIndex];
+
+                    display.textContent = "?";
+                    display.classList.remove('rolling');
+                    
+                    oracleVal.textContent = finalAnswer.text;
+                    oracleVal.style.color = finalAnswer.color;
+                    document.getElementById('roll-meta-info').textContent = "Оракул дал ответ";
+                    
+                    playSciFiBeep(true);
+                    addHistoryItem("Оракул", finalAnswer.text, null, finalAnswer.text);
+                    isRolling = false;
+                }
+            }, intervalTime);
+        }
+
+        function addHistoryItem(type, base, mod, total) {
+            const log = document.getElementById('history-log');
+            const item = document.createElement('div');
+            item.className = 'history-item';
+
+            let formulaText = "";
+            if (mod === null) {
+                formulaText = `${type}`;
+            } else if (mod === 0) {
+                formulaText = `${type} (${base})`;
+            } else {
+                formulaText = `${type} (${base}) ${mod > 0 ? '+' : ''}${mod}`;
+            }
+
+            item.innerHTML = `
+                <span class="hist-formula">${formulaText}</span>
+                <span class="hist-total">${total}</span>
+            `;
+
+            log.appendChild(item);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function clearHistory() {
+            document.getElementById('history-log').innerHTML = '';
+        }
+    </script>
+</body>
+</html>
